@@ -9,6 +9,6 @@
 <Router basepath="/">
   <SvelteUIProvider>
     <Route path="/"><Index /></Route>
-    <Route path=/:rid let:params><Room roomId={params.rid}/></Route>
+    <Route path="/:rid" let:params><Room roomId={params.rid}/></Route>
   </SvelteUIProvider>
 </Router>

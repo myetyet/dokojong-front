@@ -52,7 +52,12 @@
     $: imPlayer = myRole == UserRole.Player || myRole == UserRole.Operator;
     $: imOperator = myRole === UserRole.Operator;
 
-    let websocket: DokojongWebSocket;
+    let websocket = new DokojongWebSocket(
+    /* url     */ location.href.replace('http', 'ws').replace('5173', '8000'),
+    /* onopen  */ (send) => send({ type: 'user.register', nickname }),
+    /* onclose */ (reason) => modalOpened[reason === 'close.duplicated_login' ? 'duplicatedLogin' : 'disconnected'] = true,
+    /* onerror */ () => modalOpened.disconnected = true
+    );
 
     export let roomId: string;
 
@@ -77,16 +82,16 @@
     }
 
     onMount(() => {
-        websocket = new DokojongWebSocket(
-        /* url     */ location.href.replace('http', 'ws'),
-        /* onopen  */ (send) => send({ type: 'user.register', nickname }),
-        /* onclose */ (reason) => modalOpened[reason === 'close.duplicated_login' ? 'duplicatedLogin' : 'disconnected'] = true,
-        /* onerror */ () => modalOpened.disconnected = true
-        );
+        // websocket = new DokojongWebSocket(
+        // /* url     */ location.href.replace('http', 'ws').replace('5173', '8000'),
+        // /* onopen  */ (send) => send({ type: 'user.register', nickname }),
+        // /* onclose */ (reason) => modalOpened[reason === 'close.duplicated_login' ? 'duplicatedLogin' : 'disconnected'] = true,
+        // /* onerror */ () => modalOpened.disconnected = true
+        // );
         websocket.addHandler('user.init', (data) => {
-        nickname = data.nickname;
-        localStorage.setItem('dokojong.nickname', nickname);
-        modalOpened.connecting = false;
+            nickname = data.nickname;
+            localStorage.setItem('dokojong.nickname', nickname);
+            modalOpened.connecting = false;
         });
         websocket.addHandler('player.status', (data) => {
             playerStatusList = data.status;
