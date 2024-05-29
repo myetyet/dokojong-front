@@ -6,14 +6,14 @@
 
     import { DokojongWebSocket } from './websocket';
     import { copyText } from '../../utils';
+    
+    export let websocket: DokojongWebSocket, roomId: string, gameStart: boolean, imOperator: boolean;
 
     // modal (mo), tooltip (to) opened status
     let moGameSetting = false, moPlayerHelp = false, toLinkCopied = false;
     // game settings and their inputs
     let sendingSettings = false, quickGame = true, quickGameInput = true;
     $: gameSettingsChanged = quickGame !== quickGameInput;
-    
-    export let websocket: DokojongWebSocket, roomId: string, gameStart: boolean, imOperator: boolean;
 
     onMount(() => {
         websocket.addHandler('game.change_settings', (data) => {

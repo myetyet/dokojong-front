@@ -43,11 +43,11 @@
     $: canRemoveSeat = playerStatusList.length > minSeatNumber;
     $: canAddSeat = playerStatusList.length < maxSeatNumber;
   
-    enum UserRole { Observer, Player, Operator };
-    let myRole = UserRole.Observer;
-    $: imObserver = myRole === UserRole.Observer;
-    $: imPlayer = myRole == UserRole.Player || myRole == UserRole.Operator;
-    $: imOperator = myRole === UserRole.Operator;
+    // enum UserRole { Observer, Player, Operator };
+    // let myRole = UserRole.Observer;
+    // $: imObserver = myRole === UserRole.Observer;
+    // $: imPlayer = myRole == UserRole.Player || myRole == UserRole.Operator;
+    // $: imOperator = myRole === UserRole.Operator;
 
     let websocket: DokojongWebSocket;
 
@@ -138,9 +138,15 @@
         }
     }
 
-    function changeSettings() {
-        sendingSettings = true;
-        websocket.send({ type: 'game.change_settings', quick: quickGameInput });
+    let myRole: 'OB' | 'P' | 'OP' = 'OB';
+    $: imObserver = myRole === 'OB';
+    $: imPlayer = myRole === 'P' || myRole === 'OP';
+    $: imOperator = myRole === 'OB';
+
+    function changeRole(ev: CustomEvent<{ role: 'OB' | 'P' | 'OP' }>) {
+        if (myRole !== ev.detail.role) {
+            myRole = ev.detail.role;
+        }
     }
 
 </script>
@@ -151,7 +157,7 @@
     {#if gameStart}
         <!-- <GameBoard {websocket} /> -->
     {:else}
-        <WaitingHall {websocket} />
+        <WaitingHall {websocket} on:changeRole={changeRole} />
     {/if}
 
     <!-- <Divider />

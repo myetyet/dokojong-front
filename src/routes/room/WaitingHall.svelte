@@ -1,35 +1,35 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+    import { createEventDispatcher, onMount } from 'svelte';
     import { Group } from '@svelteuidev/core';
 
-    import { clipboard } from '@svelteuidev/composables';
+    import Seat from './Seat.svelte';
     import type { DokojongWebSocket } from './websocket';
 
     export let websocket: DokojongWebSocket;
 
+    const dispatch = createEventDispatcher();
+
     type SeatStatus = { nickname: string; online: boolean; me: boolean; operator: boolean; };
-    let seatStatusList: (SeatStatus | null)[] = [];
+    let seatStatusList: (SeatStatus | null)[] = [], isFullHouse = false;
 
     onMount(() => {
         websocket.addHandler('seat.status', (data) => {
             seatStatusList = data.status;
-            let myNewRole = UserRole.Observer;
+            let myNewRole: 'OB' | 'P' | 'OP' = 'OB';
             let isFullHouse = true;
             for (const seatStatus of seatStatusList) {
                 if (seatStatus === null) {
                     isFullHouse = false;
                 } else {
                     if (seatStatus.me) {
-                        myNewRole = UserRole.Player;
+                        myNewRole = 'P';
                         if (seatStatus.operator) {
-                            myNewRole = UserRole.Operator;
+                            myNewRole = 'OP';
                         }
                     }
                 }
             }
-            if (myNewRole !== myRole) {
-                myRole = myNewRole;
-            }
+            dispatch('changeRole', { role: myNewRole });
             if (canStartGame !== isFullHouse) {
                 canStartGame = isFullHouse;
             }
@@ -40,7 +40,7 @@
 
 <Group position="center" style="gap: 30px">
     {#each seatStatusList as seatStatus, i}
-        {#if playerStatus === null}
+        {#if seatStatus === null}
             <Seat
                 order={i + 1}
                 vacant
@@ -52,9 +52,9 @@
         {:else}
             <Seat
                 order={i + 1}
-                {...playerStatus}
+                {...seatStatus}
                 {imPlayer}
-                xbutton={playerStatus.me || imOperator}
+                xbutton={seatStatus.me || imOperator}
                 on:remove={(ev) => removePlayer(ev.detail.seat)}
                 on:takeOP={() => takeOperator()}
             />
