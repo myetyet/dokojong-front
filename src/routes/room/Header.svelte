@@ -4,7 +4,7 @@
     import { ArrowLeft, Gear, InfoCircled, Share1 } from 'svelte-radix';
     import { navigate } from 'svelte-routing';
 
-    import type { DokojongWebSocket } from './websocket';
+    import { DokojongWebSocket } from './websocket';
     import { copyText } from '../../utils';
 
     // modal (mo), tooltip (to) opened status
