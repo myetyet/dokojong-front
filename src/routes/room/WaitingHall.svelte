@@ -5,6 +5,7 @@
 
     import Seat from './Seat.svelte';
     import type { DokojongWebSocket } from './websocket';
+    import { extractNickname, getStoredNickname, randomNickname, storeNickname } from '../../utils';
 
     export let websocket: DokojongWebSocket;
     
@@ -15,9 +16,9 @@
     let moPlayerHelp = false;
 
     // nickname and its input
-    let nickname = localStorage.getItem('dokojong.nickname') ?? '',
+    let nickname = getStoredNickname() ?? randomNickname(),
         nicknameInput = '',
-        nicknameInputError = false;
+        nicknameInputError: string | boolean = false;
 
     // miscellaneous
     let seatStatusList: ({ nickname: string; online: boolean; me: boolean; operator: boolean; } | null)[] = [],
@@ -38,6 +39,10 @@
                         if (seatStatus.operator) {
                             myNewRole = 'OP';
                         }
+                        if (nickname !== seatStatus.nickname) {
+                            nickname = seatStatus.nickname;
+                            storeNickname(nickname);
+                        }
                     }
                 }
             }
@@ -45,7 +50,7 @@
             myRole = myNewRole;
             canStartGame = isFullHouse;
         });
-        websocket.send({ type: 'user.register',  });
+        websocket.send({ type: 'user.register', stage: 'hall' });
     });
 
     onDestroy(() => {
@@ -53,7 +58,7 @@
     });
 
     function takeSeat(seat: number) {
-        websocket.send({ type: 'user.take_seat', seat, nickname: myRole === 'OB' ? nickname : undefined });
+        websocket.send({ type: 'user.take_seat', seat, nickname });
     }
 
     function removeSeat(seat: number) {
@@ -78,15 +83,15 @@
 
     function nicknameChangeHandler() {
         if (nicknameInput.length === 0) {
-            nicknameError = false;
+            nicknameInputError = false;
         } else {
             const nicknameExtraction = extractNickname(nicknameInput);
             if (nicknameExtraction === null) {
-                nicknameError = '昵称输入有误';
+                nicknameInputError = '昵称输入有误';
             } else {
                 nickname = nicknameExtraction;
-                localStorage.setItem('dokojong.nickname', nickname);
-                nicknameError = false;
+                storeNickname(nickname);
+                nicknameInputError = false;
             }
         }
     }

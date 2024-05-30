@@ -18,3 +18,16 @@ export function extractNickname(nicknameInput: string) {
     }
     return null;
 }
+
+const defaultNicknames = ['😀', '😄', '😁', '😆'];
+export function randomNickname() {
+    return defaultNicknames[Math.floor(Math.random() * defaultNicknames.length)];
+}
+
+const storageKey = 'dokojong.nickname';
+export function getStoredNickname() {
+    return localStorage.getItem(storageKey);
+}
+export function storeNickname(nickname: string) {
+    localStorage.setItem(storageKey, nickname);
+}
