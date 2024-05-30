@@ -66,13 +66,22 @@
 </Stack>
 <Modal opened={moGameSetting} centered on:close={() => moGameSetting = false} title={imOperator ? '规则设置' : '查看规则'}>
     <Stack>
-        <Switch bind:checked={quickGameInput} label="当有玩家出局时结束游戏" disabled={!imOperator && false} />
-        <Group position="right">
-            {#if imOperator || true}
+        <Switch bind:checked={quickGameInput} label="当有玩家出局时结束游戏" disabled={!imOperator} />
+        {#if imOperator}
+            <Group position="right">
                 <Button on:click={() => changeSettings()} disabled={!gameSettingsChanged} loading={sendingSettings}>
                     保存
                 </Button>
-            {/if}
-        </Group>
+            </Group>
+        {/if}
     </Stack>
+</Modal>
+<Modal opened={moPlayerHelp} center on:close={() => moPlayerHelp = false} title="玩家提示卡">
+    轮到你时，你进行如下四项行动中的一项：
+    <ol>
+        <li>【👍ＯＫ】对当前打开的房门表示OK。</li>
+        <li>【➕️增加】再打开1扇房门，然后拿取领袖标记🐾。</li>
+        <li>【🔃反转】关闭所有打开的房门，并打开除这些房门以外的任意其他房门，然后拿取领袖标记🐾。<span style="color: #fa5252;">*&nbsp;新打开的房门数量必须比此前处于打开状态的房门数量多1，故有至少3扇打开的房门时不能进行此项行动。</span></li>
+        <li>【🫵指认】选择当前领袖的未翻开的1张牌，宣称你认为领袖的狗狗🐶位于此扇房门后。</li>
+    </ol>
 </Modal>
