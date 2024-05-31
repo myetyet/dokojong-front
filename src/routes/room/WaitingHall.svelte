@@ -98,7 +98,7 @@
 </script>
 
 
-<Group position="center" style="gap: 30px">
+<Group position="center" style="gap: 30px; margin-top: 32px;">
     {#each seatStatusList as seatStatus, i}
         {#if seatStatus === null}
             <Seat
@@ -124,20 +124,21 @@
         <Seat virtual on:add={() => addSeat()} />
     {/if}
 </Group>
-{#if myRole === 'OB'}
-    <Group position="center">
+
+<Group position="center" style="margin-top: 32px;">
+    {#if myRole === 'OB'}
         <Seat {nickname} me />
         <TextInput bind:value={nicknameInput} on:change={nicknameChangeHandler} error={nicknameInputError} placeholder="输入昵称">
             <ActionIcon slot="rightSection" on:click={() => moPlayerHelp = true}>
                 <QuestionMarkCircled size="16px" />
             </ActionIcon>
         </TextInput>
-    </Group>
-{:else if myRole === 'P'}
-    <Button disabled>请等待房主开始游戏</Button>
-{:else}
-    <Button disabled={!canStartGame} on:click={() => startGame()}>开始游戏</Button>
-{/if}
+    {:else if myRole === 'P'}
+        <Button size="lg" disabled>请等待房主开始游戏</Button>
+    {:else}
+        <Button size="lg" disabled={!canStartGame} on:click={() => startGame()}>开始游戏</Button>
+    {/if}
+</Group>
 <Modal opened={moPlayerHelp} centered on:close={() => moPlayerHelp = false} title="昵称输入帮助">
     输入1个汉字、或1个emoji表情、或2位数字字母的组合作为昵称。输入框并不限制最大输入长度，但会根据输入的内容截取适量头部字符作为昵称。
 </Modal>

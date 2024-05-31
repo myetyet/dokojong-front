@@ -16,14 +16,14 @@
     $: gameSettingsChanged = quickGame !== quickGameInput;
 
     onMount(() => {
-        websocket.addHandler('game.change_settings', (data) => {
+        websocket.addHandler('game.settings', (data) => {
             quickGame = quickGameInput = data.quick_game;
             sendingSettings = false;
         });
     });
 
     onDestroy(() => {
-        websocket.removeHandler('game.change_settings');
+        websocket.removeHandler('game.settings');
     });
 
     function popTooltip() {
