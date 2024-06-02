@@ -26,8 +26,8 @@ export function randomNickname() {
 
 const storageKey = 'dokojong.nickname';
 export function getStoredNickname() {
-    return localStorage.getItem(storageKey);
+    return sessionStorage.getItem(storageKey);  // change to localStorage for release
 }
 export function storeNickname(nickname: string) {
-    localStorage.setItem(storageKey, nickname);
+    sessionStorage.setItem(storageKey, nickname);  // change to localStorage for release
 }

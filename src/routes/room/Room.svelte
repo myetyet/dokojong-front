@@ -2,6 +2,7 @@
     import { onDestroy, onMount } from 'svelte';
 
     import Header from './Header.svelte';
+    import GameBoard from './GameBoard.svelte';
     import WaitingHall from './WaitingHall.svelte'
     import WebSocket from './WebSocket.svelte';
     import { DokojongWebSocket } from './websocket';
@@ -31,7 +32,7 @@
 {#if connected}
     <Header {websocket} {roomId} {gameStart} imOperator={myRole === 'OP'} />
     {#if gameStart}
-        <!-- <GameBoard {websocket} /> -->
+        <GameBoard {websocket} />
     {:else}
         <WaitingHall {websocket} on:changeRole={(ev) => myRole = ev.detail.role} />
     {/if}
