@@ -5,35 +5,33 @@
     import GameBoard from './GameBoard.svelte';
     import WaitingHall from './WaitingHall.svelte'
     import WebSocket from './WebSocket.svelte';
-    import { DokojongWebSocket } from './websocket';
+    import type { DokojongWebSocket } from './websocket';
 
     export let roomId: string;
-    
-    let websocket: DokojongWebSocket;
 
-    let connected = false,
-        gameStart = false,
-        myRole: 'OB' | 'P' | 'OP' = 'OB';
+    let websocket: DokojongWebSocket;
+    
+    let myRole: 'OB' | 'P' | 'OP' = 'OB',
+        roomStage: 'waiting' | 'gaming' | undefined = undefined;
+    $: gameStart = roomStage === 'gaming';
 
     onMount(() => {
-        websocket.addHandler('room.stage', (data) => {
-            gameStart = data.stage === 'gaming';
-        });
+        websocket.addHandler('room.stage', (data) => roomStage = data.stage);
     });
 
     onDestroy(() => {
-        websocket.removeHandler('room.status');
+        websocket.removeHandler('room.stage');
         websocket.close();
     });
 
 </script>
 
-<WebSocket initWebSocket={(ws) => websocket = ws} on:connected={() => connected = true} />
-{#if connected}
+<WebSocket initWebSocket={(ws) => websocket = ws} />
+{#if roomStage !== undefined}
     <Header {websocket} {roomId} {gameStart} imOperator={myRole === 'OP'} />
     {#if gameStart}
         <GameBoard {websocket} />
     {:else}
-        <WaitingHall {websocket} on:changeRole={(ev) => myRole = ev.detail.role} />
+        <WaitingHall {websocket} changeRole={(role) => myRole = role} />
     {/if}
 {/if}

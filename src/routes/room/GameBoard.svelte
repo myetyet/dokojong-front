@@ -10,7 +10,7 @@
         websocket.addHandler('game.setup', (data) => {
             welcome = data.welcome;
         });
-        websocket.send({ type: 'user.register' });
+        websocket.send({ type: 'stage.init' });
     });
 </script>
 

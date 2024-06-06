@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createEventDispatcher, onMount } from 'svelte';
+    import { onMount } from 'svelte';
     import { Modal } from '@svelteuidev/core';
 
     import { DokojongWebSocket } from './websocket';
@@ -8,14 +8,11 @@
 
     // modal (mo) opened status
     let moDisconnected = false, moDuplicatedLogin = false, moConnecting = true;
-    
-    const dispatch = createEventDispatcher();
 
     onMount(() => {
         initWebSocket(new DokojongWebSocket(
             location.href.replace('http', 'ws').replace('5173', '8000'),
             function onopen() {
-                dispatch('connected');
                 moConnecting = false;
             },
             function onclose(ev) {

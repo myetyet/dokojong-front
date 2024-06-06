@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { createEventDispatcher, onDestroy, onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { ActionIcon, Button, Group, Modal, TextInput } from '@svelteuidev/core';
     import { QuestionMarkCircled } from 'svelte-radix';
 
@@ -7,10 +7,9 @@
     import type { DokojongWebSocket } from './websocket';
     import { extractNickname, getStoredNickname, randomNickname, storeNickname } from '../../utils';
 
-    export let websocket: DokojongWebSocket;
+    export let websocket: DokojongWebSocket, changeRole: (role: typeof myRole) => any;
     
     const minSeatNumber = 2, maxSeatNumber = 5;
-    const dispatch = createEventDispatcher();
 
     // modal opened status
     let moPlayerHelp = false;
@@ -46,11 +45,11 @@
                     }
                 }
             }
-            dispatch('changeRole', { role: myNewRole });
             myRole = myNewRole;
+            changeRole(myNewRole);
             canStartGame = isFullHouse;
         });
-        websocket.send({ type: 'user.register' });
+        websocket.send({ type: 'stage.init' });
     });
 
     onDestroy(() => {
