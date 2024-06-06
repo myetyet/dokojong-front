@@ -16,13 +16,13 @@
         myRole: 'OB' | 'P' | 'OP' = 'OB';
 
     onMount(() => {
-        websocket.addHandler('game.status', (data) => {
-            gameStart = data.start;
+        websocket.addHandler('room.stage', (data) => {
+            gameStart = data.stage === 'gaming';
         });
     });
 
     onDestroy(() => {
-        websocket.removeHandler('game.status');
+        websocket.removeHandler('room.status');
         websocket.close();
     });
 

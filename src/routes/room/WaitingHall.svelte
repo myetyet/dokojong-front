@@ -50,7 +50,7 @@
             myRole = myNewRole;
             canStartGame = isFullHouse;
         });
-        websocket.send({ type: 'user.register', stage: 'hall' });
+        websocket.send({ type: 'user.register' });
     });
 
     onDestroy(() => {
