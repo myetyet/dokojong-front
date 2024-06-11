@@ -1,9 +1,9 @@
 <script lang="ts">
     import { createEventDispatcher } from 'svelte';
-    import { ActionIcon, Badge, Box, Center, CloseButton, Paper } from '@svelteuidev/core';
+    import { ActionIcon, Badge, Box, Center, CloseButton, Loader, Paper } from '@svelteuidev/core';
     import { Plus, Update } from 'svelte-radix';
     
-    export let vacant = false, nickname = '', online = false, me = false, operator = false, imPlayer = false, xbutton = false, order = 0, virtual = false;
+    export let vacant = false, nickname = '', online = false, me = false, operator = false, imPlayer = false, xbutton = false, order = 0, virtual = false, active = false;
     $: noPlayer = vacant || virtual;
     $: canTakeOperator = /*operator && */!online && imPlayer;  // this flag is only used inside a `if operator` block
 
@@ -16,7 +16,7 @@
     override={{ borderStyle: virtual ? 'dashed' : 'solid', padding: `${vacant || virtual ? 13 : 12}px` }}
 >
     {#if noPlayer}
-        <ActionIcon on:click={() => virtual ? dispatch('add') : dispatch('join', { seat: order })}>
+        <ActionIcon on:click={() => virtual ? dispatch('add') : dispatch('join', order)}>
             {#if imPlayer}
                 <Update size="26px" style="transform: rotate(90deg);" />
             {:else}
@@ -53,8 +53,13 @@
     {/if}
     {#if xbutton}
         <Badge color="red" size="sm" style="position: absolute; top: -5px; right: -5px; padding: 2px;">
-            <CloseButton size="xs" iconSize="xs" color="red" variant="transparent" on:click={() => dispatch('remove', { seat: order })} />
+            <CloseButton size="xs" iconSize="xs" color="red" variant="transparent" on:click={() => dispatch('remove', order)} />
         </Badge>
+    {/if}
+    {#if active}
+        <Box css={{ position: 'absolute', top: '-5px', right: '-5px' }}>
+            <Loader size={16} variant="bars" color={online ? 'blue' : 'gray'} />
+        </Box>
     {/if}
     {#if order > 0}
         <Badge color="blue" size="sm" style="position: absolute; bottom: -5px; right: -5px;">

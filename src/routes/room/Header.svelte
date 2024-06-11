@@ -7,7 +7,7 @@
     import { DokojongWebSocket } from './websocket';
     import { copyText } from '../../utils';
     
-    export let websocket: DokojongWebSocket, roomId: string, gameStart: boolean, imOperator: boolean;
+    export let websocket: DokojongWebSocket, roomId: string, gaming: boolean, imOperator: boolean;
 
     // modal (mo), tooltip (to) opened status
     let moGameSetting = false, moPlayerHelp = false, toLinkCopied = false;
@@ -16,7 +16,7 @@
     let quickGame = true, quickGameInput = true;
     let sendingSettings = false, settingsUnread = false;
     $: gameSettingsChanged = quickGame !== quickGameInput;
-    $: settingsDisabled = !imOperator || sendingSettings || gameStart;
+    $: settingsDisabled = !imOperator || sendingSettings || gaming;
 
     // game termination
     let terminationCountdown = -1, terminationIntervalId: number;
@@ -71,7 +71,7 @@
             <ArrowLeft />
         </ActionIcon>
         <Title order={1} weight="bold" align="center">Dokojong</Title>
-        {#if gameStart}
+        {#if gaming}
             <ActionIcon on:click={() => moPlayerHelp = true}>
                 <InfoCircled />
             </ActionIcon>
@@ -103,12 +103,12 @@
         </ActionIcon>
     </Group>
 </Stack>
-<Modal opened={moGameSetting} centered on:close={() => moGameSetting = false} title={imOperator && !gameStart ? '规则设置' : '查看规则'}>
+<Modal opened={moGameSetting} centered on:close={() => moGameSetting = false} title={imOperator && !gaming ? '规则设置' : '查看规则'}>
     <Stack>
         <Switch bind:checked={quickGameInput} label="当有玩家出局时结束游戏" disabled={settingsDisabled} />
         {#if imOperator}
             <Group position="right">
-                {#if gameStart}
+                {#if gaming}
                     <Button on:click={() => terminateGame()} color="red" loading={terminationCountdown > 0}>
                         {terminationCountdown > 0 ? `本局将于${terminationCountdown}秒后结束` : '结束游戏'}
                     </Button>

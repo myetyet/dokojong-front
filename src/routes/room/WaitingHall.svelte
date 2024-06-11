@@ -49,7 +49,7 @@
             changeRole(myNewRole);
             canStartGame = isFullHouse;
         });
-        websocket.send({ type: 'stage.init' });
+        websocket.send({ type: 'hall.init' });
     });
 
     onDestroy(() => {
@@ -105,8 +105,8 @@
                 vacant
                 imPlayer={myRole === 'P' || myRole === 'OP'}
                 xbutton={myRole === 'OP' && seatStatusList.length > minSeatNumber}
-                on:join={(ev) => takeSeat(ev.detail.seat)}
-                on:remove={(ev) => removeSeat(ev.detail.seat)}
+                on:join={(ev) => takeSeat(ev.detail - 1)}
+                on:remove={(ev) => removeSeat(ev.detail - 1)}
             />
         {:else}
             <Seat
@@ -114,7 +114,7 @@
                 {...seatStatus}
                 imPlayer={myRole === 'P' || myRole === 'OP'}
                 xbutton={seatStatus.me || myRole === 'OP'}
-                on:remove={(ev) => removePlayer(ev.detail.seat)}
+                on:remove={(ev) => removePlayer(ev.detail - 1)}
                 on:takeOP={() => takeOperator()}
             />
         {/if}

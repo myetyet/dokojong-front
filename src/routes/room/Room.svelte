@@ -12,24 +12,23 @@
     let websocket: DokojongWebSocket;
     
     let myRole: 'OB' | 'P' | 'OP' = 'OB',
-        roomStage: 'waiting' | 'gaming' | undefined = undefined;
-    $: gameStart = roomStage === 'gaming';
+        gaming: boolean | undefined = undefined;
 
     onMount(() => {
-        websocket.addHandler('room.stage', (data) => roomStage = data.stage);
+        websocket.addHandler('room.status', (data) => gaming = data.gaming);
     });
 
     onDestroy(() => {
-        websocket.removeHandler('room.stage');
+        websocket.removeHandler('room.status');
         websocket.close();
     });
 
 </script>
 
 <WebSocket initWebSocket={(ws) => websocket = ws} />
-{#if roomStage !== undefined}
-    <Header {websocket} {roomId} {gameStart} imOperator={myRole === 'OP'} />
-    {#if gameStart}
+{#if gaming !== undefined}
+    <Header {websocket} {roomId} {gaming} imOperator={myRole === 'OP'} />
+    {#if gaming}
         <GameBoard {websocket} />
     {:else}
         <WaitingHall {websocket} changeRole={(role) => myRole = role} />
