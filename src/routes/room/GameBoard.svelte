@@ -64,10 +64,6 @@
         websocket.send({ type: 'board.init' });
     });
 
-    function displayTile(status: boolean | null) {
-        return status === null || !tilesVisible ? '❔' : status ? '🐶' : '✖️';
-    }
-
     function activeSeats(playerActive: boolean[]) {
         return playerActive.map((active, i) => active ? i + 1 : 0).filter((i) => i > 0).join('、');
     }
@@ -104,7 +100,7 @@
     <Text>{instruction}</Text>
 </Stack>
 
-<Stack align="center" spacing="xl" style="margin-top: 32px; width: 95%;">
+<Stack align="center" spacing="xl" style="margin-top: 32px;">
     {#each playerIterator as i (i)}
         <Group>
             <Stack align="center" spacing="xs">
@@ -115,23 +111,36 @@
                     <Text root="span" color="$green500">{scoreList[i][0]}</Text>  <!-- Score -->
                     <Text root="span" color="$red500">{scoreList[i][1]}</Text>  <!-- Penalty -->
                 </Stack>
+                {@const isMe = i === mySeat}
                 {#each tileStatusList[i] as tileStatus, j (j)}
                     <Stack align="center" style="gap: 5px;">
                         <Text root="span" style="height: 28px; line-height: 28px;">{j + 1}</Text>
-                        <ActionIcon size="md" variant="outline" on:click={() => placeDog(j)} disabled={i !== mySeat || !playerActive[mySeat]}>
-                            <Text root="span" style="font-size: 18px;">{displayTile(tileStatus)}</Text>
+                        <ActionIcon
+                            size="md"
+                            variant="outline"
+                            on:click={() => placeDog(j)}
+                            disabled={!isMe || !playerActive[mySeat]}
+                            override={tileStatus !== null ? { borderColor: 'orange', borderWidth: '2px' } : {}}
+                        >
+                            <Text root="span" style="font-size: 18px;">{
+                                tileStatus === null && (!tilesVisible || !isMe)
+                                    ? '❔'
+                                    : tileStatus || j === dogPosition
+                                        ? '🐶'
+                                        : '✖️'
+                            }</Text>
                         </ActionIcon>
                     </Stack>
                 {/each}
                 <Stack align="center" style="gap: 5px;">
-                    {#if setupStage && i === mySeat && !dogPositionSending && playerActive[mySeat]}
+                    {#if setupStage && isMe && !dogPositionSending && playerActive[mySeat]}
                         <ActionIcon size="md" on:click={() => placeDog(randomPosition())}>
                             <Shuffle size="18px" />
                         </ActionIcon>
                     {:else}
                         <div style="height: 28px; width: 28px;"></div>
                     {/if}
-                    {#if i === mySeat}
+                    {#if isMe}
                         {#if setupStage && playerActive[mySeat]}
                             <ActionIcon size="md" on:click={() => sendDogPosition()} loading={dogPositionSending}>
                                 <Check size="18px" style="transform-origin: center; transform: scale(1.7);" />
