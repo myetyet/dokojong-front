@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { ActionIcon, Box, Center, Group, Stack, Switch, Text, Title } from '@svelteuidev/core';
+    import { ActionIcon, Button, Group, Stack, Switch, Text, Title } from '@svelteuidev/core';
     import { Check, EyeClosed, EyeOpen, Shuffle } from 'svelte-radix';
 
     import type { DokojongWebSocket } from './websocket';
@@ -33,6 +33,12 @@
         dogPositionInput = -1,
         dogPositionSending = false;
 
+    // action button enabled (abe) flags
+    let abeOK = false,
+        abeAdd = false,
+        abeReverse = false,
+        abeFinger = false;
+
     onMount(() => {
         websocket.addHandler('seat.status', (data) => {
             seatStatusList = data.status;
@@ -61,6 +67,12 @@
             dogPositionSending = false;
             dogPosition = data.position;
         })
+        websocket.addHandler('player.act', (data) => {
+            playerActive = data.active;
+            setupStage = false;
+            gameLog = `玩家${activeSeats(playerActive)}正在行动`;
+            instruction = playerActive[mySeat] ? '请点击下方的行动按钮' : '';
+        })
         websocket.send({ type: 'board.init' });
     });
 
@@ -82,8 +94,10 @@
     }
 
     function sendDogPosition() {
-        dogPositionSending = true;
-        websocket.send({ type: 'dog.place', position: dogPositionInput });
+        if (dogPositionInput > -1) {
+            dogPositionSending = true;
+            websocket.send({ type: 'dog.place', position: dogPositionInput });
+        }
     }
 </script>
 
@@ -91,7 +105,10 @@
     {#each doorsOpened as opened, i (i)}
         <Stack align="center" spacing="xs" style="border-style: solid; border-width: 1px; border-radius: 8px; padding: 10px 5px;">
             <Text root="span">{i + 1}</Text>
-            <Switch checked={opened} color={doorColors[i]} />
+            <div style="position: relative;">
+                <div style="position: absolute; width: 100%; height: 100%; z-index: 200;"></div>
+                <Switch checked={opened} color={doorColors[i]} />
+            </div>
         </Stack>
     {/each}
 </Group>
@@ -99,7 +116,12 @@
     <Title order={3}>{gameLog}</Title>
     <Text>{instruction}</Text>
 </Stack>
-
+<Group position="center" style="margin-top: 24px; gap: 8px;">
+    <Button variant="outline" compact disabled={!abeOK}>👍&nbsp;ＯＫ</Button>
+    <Button variant="outline" compact disabled={!abeAdd}>➕&nbsp;增加</Button>
+    <Button variant="outline" compact disabled={!abeReverse}>🔃&nbsp;反转</Button>
+    <Button variant="outline" compact disabled={!abeFinger}>🫵&nbsp;指认</Button>
+</Group>
 <Stack align="center" spacing="xl" style="margin-top: 32px;">
     {#each playerIterator as i (i)}
         <Group>
@@ -120,7 +142,7 @@
                             variant="outline"
                             on:click={() => placeDog(j)}
                             disabled={!isMe || !playerActive[mySeat]}
-                            override={tileStatus !== null ? { borderColor: 'orange', borderWidth: '2px' } : {}}
+                            override={tileStatus !== null && !setupStage ? { borderColor: 'orange', borderWidth: '2px' } : {}}
                         >
                             <Text root="span" style="font-size: 18px;">{
                                 tileStatus === null && (!tilesVisible || !isMe)

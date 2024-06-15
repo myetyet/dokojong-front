@@ -18,6 +18,7 @@ export class DokojongWebSocket {
             let data: Data | undefined;
             try { data = JSON.parse(ev.data); } catch {}
             if (data === undefined || !(data.type in this.handlers)) {
+                alert(data === undefined ? 'Message data is undefined.' : `Cannot handle ${data.type}`);
                 this.close();
             } else {
                 this.handlers[data.type](data);
