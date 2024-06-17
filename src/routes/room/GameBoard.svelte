@@ -11,7 +11,8 @@
     
     const doorColors = ['teal', 'orange', 'pink', 'blue', 'grape'];
     const doorsIterator = [0, 1, 2, 3, 4];
-    const fiveFalse = [false, false, false, false, false];
+    const fiveFalse = new Array(5).fill(false);
+    const fiveTrue = new Array(5).fill(true);
 
     let gameLog = '',
         instruction = '',
@@ -39,15 +40,30 @@
     let abeOK = false,
         abeAdd = false,
         abeReverse = false,
-        abeFinger = false;
+        abeFinger = false,
+        canSubmit: boolean;  // will be initialized below
 
     // doors status and their inputs
-    let doorsOpened = [false, false, false, false, false],
-        doorsOpenedInput = [false, false, false, false, false],
-        doorsDisabled = [true, true, true, true, true],
-        doorsDisabledInput = [true, true, true, true, true];
+    let doorsOpened = Array.from(fiveFalse),
+        doorsOpenedInput = Array.from(fiveFalse),
+        doorsDisabled = Array.from(fiveTrue),
+        doorsStatusSending = false;
 
-    let doorsSelectionMode: 'add' | 'reverse' | null = null;
+    let actionMode: 'add' | 'reverse' | 'finger' | 'reward' | null = null;
+
+    $: {
+        if (actionMode === null) {
+            canSubmit = false;
+        } else {
+            const newOpened = doorsIterator.reduce((count, i) => count + Number(doorsOpenedInput[i] !== doorsOpened[i]), 0);
+            if (actionMode === 'add') {
+                canSubmit = newOpened === 1;
+            } else if (actionMode === 'reverse') {
+                const previousOpened = doorsOpened.filter((door) => door).length;
+                canSubmit = newOpened === previousOpened + 1;
+            }
+        }
+    }
 
     onMount(() => {
         websocket.addHandler('seat.status', (data) => {
@@ -68,8 +84,6 @@
             tileStatusList = data.tiles;
             doorsOpened = Array.from(data.doors);
             doorsOpenedInput = Array.from(data.doors);
-            doorsDisabled = Array.from(data.doors);
-            doorsDisabledInput = Array.from(data.doors);
             updateGameLog(data.log);
         });
         websocket.addHandler('tiles.setup', (data) => {
@@ -92,6 +106,10 @@
                 instruction = '';
                 disableButtons();
             }
+        });
+        websocket.addHandler('doors.opened', () => {
+            actionMode = null;
+            doorsStatusSending = false;
         });
         websocket.send({ type: 'board.init' });
     });
@@ -172,26 +190,28 @@
 
     function actAdd() {
         disableButtons();
-        doorsSelectionMode = 'add';
+        actionMode = 'add';
         instruction = '再开启一扇门后点击确定';
+        doorsDisabled = Array.from(doorsOpened);
     }
 
     function actReverse() {
-
+        actionMode = 'reverse';
     }
 
     function actFinger() {
-
+        actionMode = 'finger';
     }
 
     function sendDoorsStatus() {
-
+        doorsStatusSending = true;
+        websocket.send({ type: 'doors.add', doors: doorsOpenedInput });
     }
 
-    function cancelDoorsSetting() {
-        doorsSelectionMode = null;
+    function discardDoorsSelection() {
+        actionMode = null;
         doorsOpenedInput = Array.from(doorsOpened);
-        doorsDisabledInput = Array.from(doorsDisabled);
+        doorsDisabled = Array.from(fiveTrue);
         instruction = '';
         updateButton();
     }
@@ -208,7 +228,7 @@
         >
             <Text root="span">{i + 1}</Text>
             <div style="position: relative;">
-                {#if doorsDisabledInput[i]}
+                {#if doorsDisabled[i]}
                     <div style="position: absolute; width: 100%; height: 100%; z-index: 200;"></div>
                 {/if}
                 <Switch bind:checked={doorsOpenedInput[i]} color={doorColors[i]} />
@@ -226,10 +246,10 @@
     <Button variant="outline" compact disabled={!abeReverse} on:click={() => actReverse()}>🔃&nbsp;反转</Button>
     <Button variant="outline" compact disabled={!abeFinger} on:click={() => actFinger()}>🫵&nbsp;指认</Button>
 </Group>
-{#if doorsSelectionMode !== null}
+{#if actionMode === 'add' || actionMode === 'reverse'}
     <Group position="center" spacing="xl" style="margin-top: 12px;">
-        <Button variant="outline" compact on:click={() => sendDoorsStatus()}>✅&nbsp;确认</Button>
-        <Button variant="outline" compact on:click={() => cancelDoorsSetting()}>❎&nbsp;取消</Button>
+        <Button variant="outline" compact disabled={!canSubmit || doorsStatusSending} on:click={() => sendDoorsStatus()}>✅&nbsp;确认</Button>
+        <Button variant="outline" compact disabled={doorsStatusSending} on:click={() => discardDoorsSelection()}>❎&nbsp;取消</Button>
     </Group>
 {/if}
 <Stack align="center" spacing="xl" style="margin-top: 32px;">
@@ -274,7 +294,7 @@
                     {/if}
                     {#if isMe}
                         {#if setupStage && playerActive[mySeat]}
-                            <ActionIcon size="md" on:click={() => sendDogPosition()} loading={dogPositionSending}>
+                            <ActionIcon size="md" disabled={dogPositionInput === -1} on:click={() => sendDogPosition()} loading={dogPositionSending}>
                                 <Check size="18px" style="transform-origin: center; transform: scale(1.7);" />
                             </ActionIcon>
                         {:else}
